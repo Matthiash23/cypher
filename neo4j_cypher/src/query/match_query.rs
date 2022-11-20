@@ -25,6 +25,10 @@ pub enum CompOper {
     /// This means using the following construct in the query:
     /// `n.{prop} <= {value}`
     LessEqual,
+    /// Operation `CONTAINS`
+    /// This means using the following construct in the query:
+    /// `n.{prop} CONTAINS {value}`
+    Contains
 }
 
 impl std::fmt::Display for CompOper {
@@ -35,6 +39,7 @@ impl std::fmt::Display for CompOper {
             CompOper::Less => write!(f, "<"),
             CompOper::MoreEqual => write!(f, ">="),
             CompOper::LessEqual => write!(f, "<="),
+            CompOper::Contains => write!(f, "CONTAINS")
         }
     }
 }
@@ -203,6 +208,12 @@ pub trait MatchConditionTrait: 'static + MatchActionTrait + QueryTrait {
         value: isize,
     ) -> Box<dyn MatchConditionTrait>;
 
+    /// A short use case for the where function, assuming the following final result:
+    ///
+    /// `AND n.prop CONTAINS '...'`
+    #[cfg(feature = "templates")]
+    fn and_contains_str(&mut self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait>;
+
     /// Pure **AND** query function with custom var.  
     ///
     /// Mostly used in internal methods that form shorter and more specialized functions
@@ -277,6 +288,9 @@ pub trait MatchConditionTrait: 'static + MatchActionTrait + QueryTrait {
         prop: &str,
         value: isize,
     ) -> Box<dyn MatchConditionTrait>;
+
+    #[cfg(feature = "templates")]
+    fn or_contains_str(&mut self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait>;
 
     /// Pure **OR** query function with custom var.  
     ///
@@ -563,6 +577,11 @@ impl MatchConditionTrait for MatchConditionQuery {
     }
 
     #[cfg(feature = "templates")]
+    fn and_contains_str(&mut self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait> {
+        self.and(prop, CompOper::Contains, PropType::str(value.to_string()))
+    }
+
+    #[cfg(feature = "templates")]
     fn or_eq_str(&mut self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait> {
         self.or(prop, CompOper::Equal, PropType::str(value.to_string()))
     }
@@ -660,6 +679,11 @@ impl MatchConditionTrait for MatchConditionQuery {
         value: isize,
     ) -> Box<dyn MatchConditionTrait> {
         self.or_var(nv, prop, CompOper::LessEqual, PropType::int(value))
+    }
+
+    #[cfg(feature = "templates")]
+    fn or_contains_str(&mut self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait> {
+        self.or(prop, CompOper::Contains, PropType::str(value.to_string()))
     }
 }
 
@@ -781,6 +805,12 @@ pub trait MatchTrait: 'static {
         prop: &str,
         value: isize,
     ) -> Box<dyn MatchConditionTrait>;
+
+    /// A short use case for the where function, assuming the following final result:
+    ///
+    /// `WHERE n.prop CONTAINS '...'`
+    #[cfg(feature = "templates")]
+    fn where_contains_str(&self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait>;
 }
 
 pub struct MatchQuery {
@@ -897,6 +927,13 @@ impl MatchTrait for MatchQuery {
         value: isize,
     ) -> Box<dyn MatchConditionTrait> {
         self.where_var(nv, prop, CompOper::LessEqual, PropType::int(value))
+    }
+
+    /* Contains */
+
+    #[cfg(feature = "templates")]
+    fn where_contains_str(&self, prop: &str, value: &str) -> Box<dyn MatchConditionTrait> {
+        self.r#where(prop, CompOper::Contains, PropType::str(value.to_string()))
     }
 
     fn where_var(
