@@ -102,24 +102,38 @@ pub(super) fn merge_method(
     state: &mut str,
     entity: &Entity
     ) -> Box<dyn MergeTrait> {
-    match entity {
-        Entity::Node { nv, node_name, props, labels } => {
-            let new_state = format!("MERGE ({node_var}:{node_name})", node_var=nv, node_name=node_name);
-            let state = format!(
-                "{state}{indent}{new_state}",
-                state = state,
-                indent = if state.len() > 0 { "\n" } else { "" },
-                new_state = new_state
-            );
-            Box::new(MergeQuery::new(String::new(), state.to_string()))
-        },
-        //todo: need to edit
-        Entity::Relation {from, to, name, props } => {
-            let state = "need to do rel".to_string();
-            // let new_state = format!("MERGE ({node_var}:{node_name})", node_var=from, node_name=name);
-            Box::new(MergeQuery::new(String::new(), state.to_string()))
-        },
-    }
+    let new_state =
+        match entity {
+            Entity::Node { nv, node_name, props, .. } => {
+                if let Some(props) = props {
+                    format!(
+                        "{indent}CREATE ({node_var}:{node_name} {{ {props_obj} }})",
+                        indent = if state.len() > 0 {"\n"} else {""},
+                        node_var = nv,
+                        node_name = node_name,
+                        props_obj = props_to_string(props),
+                        )
+                } else {
+                    format!(
+                        "{indent}CREATE ({node_var}:{node_name})",
+                        indent = if state.len() > 0 {"\n"} else {""},
+                        node_var = nv,
+                        node_name = node_name,
+                        )
+                }
+            },
+            //todo: need to edit
+            Entity::Relation {from, to, name, props } => {
+                "todo".to_string()
+            },
+        };
+    let state = format!(
+        "{state}{indent}{new_state}",
+        state = state,
+        indent = if state.len() > 0 { "\n" } else { "" },
+        new_state = new_state
+        );
+    Box::new(MergeQuery::new(String::new(), state.to_string()))
 }
 
 pub(super) fn create_method(state: &mut str, entities: Vec<&Entity>) -> Box<dyn ReturnTrait> {
