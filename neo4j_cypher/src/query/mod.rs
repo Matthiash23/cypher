@@ -107,7 +107,7 @@ pub(super) fn merge_method(
             Entity::Node { nv, node_name, props, .. } => {
                 if let Some(props) = props {
                     format!(
-                        "{indent}CREATE ({node_var}:{node_name} {{ {props_obj} }})",
+                        "{indent}MERGE ({node_var}:{node_name} {{ {props_obj} }})",
                         indent = if state.len() > 0 {"\n"} else {""},
                         node_var = nv,
                         node_name = node_name,
@@ -115,7 +115,7 @@ pub(super) fn merge_method(
                         )
                 } else {
                     format!(
-                        "{indent}CREATE ({node_var}:{node_name})",
+                        "{indent}MERGE ({node_var}:{node_name})",
                         indent = if state.len() > 0 {"\n"} else {""},
                         node_var = nv,
                         node_name = node_name,
