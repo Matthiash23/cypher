@@ -105,9 +105,20 @@ pub(super) fn merge_method(
     match entity {
         Entity::Node { nv, node_name, props, labels } => {
             let new_state = format!("MERGE ({node_var}:{node_name})", node_var=nv, node_name=node_name);
-            todo!()
+            let state = format!(
+                "{state}{indent}{new_state}",
+                state = state,
+                indent = if state.len() > 0 { "\n" } else { "" },
+                new_state = new_state
+            );
+            Box::new(MergeQuery::new(String::new(), state.to_string()))
         },
-        Entity::Relation { from, to, name, props } => todo!()
+        //todo: need to edit
+        Entity::Relation {from, to, name, props } => {
+            let state = "need to do rel".to_string();
+            // let new_state = format!("MERGE ({node_var}:{node_name})", node_var=from, node_name=name);
+            Box::new(MergeQuery::new(String::new(), state.to_string()))
+        },
     }
 }
 
