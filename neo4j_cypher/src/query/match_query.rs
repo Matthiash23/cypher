@@ -3,6 +3,8 @@ use crate::query::finalize::FinalizeTrait;
 use crate::query::return_query::{ReturnParamTrait, ReturnQuery, ReturnTrait};
 use crate::query::QueryTrait;
 
+use super::merge_query::MergeTrait;
+
 /// Comparison operators.
 pub enum CompOper {
     /// Operation `=`.
@@ -688,12 +690,16 @@ impl MatchConditionTrait for MatchConditionQuery {
 }
 
 impl QueryTrait for MatchConditionQuery {
-    fn create(&mut self, entitys: Vec<&Entity>) -> Box<dyn ReturnTrait> {
-        super::create_method(&mut self.state, entitys)
+    fn create(&mut self, entities: Vec<&Entity>) -> Box<dyn ReturnTrait> {
+        super::create_method(&mut self.state, entities)
     }
 
     fn r#match(&mut self, entity: &Entity, optional: bool) -> Box<dyn MatchTrait> {
         super::match_method(&mut self.state, entity, optional)
+    }
+
+    fn r#merge(&mut self, entity: &Entity) -> Box<dyn MergeTrait> {
+        super::merge_method(&mut self.state, entity)
     }
 }
 

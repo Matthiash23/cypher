@@ -1,5 +1,6 @@
 pub mod finalize;
 pub mod match_query;
+pub mod merge_query;
 pub mod return_query;
 
 use crate::entity::Entity;
@@ -7,11 +8,14 @@ use crate::entity::PropType;
 use crate::entity::Props;
 use crate::query::match_query::{MatchQuery, MatchTrait};
 use crate::query::return_query::{ReturnQuery, ReturnTrait};
+use crate::query::merge_query::{MergeQuery, MergeTrait};
 
 pub trait QueryTrait: 'static {
-    fn create(&mut self, entitys: Vec<&Entity>) -> Box<dyn ReturnTrait>;
+    fn create(&mut self, entities: Vec<&Entity>) -> Box<dyn ReturnTrait>;
 
     fn r#match(&mut self, entity: &Entity, optional: bool) -> Box<dyn MatchTrait>;
+
+    fn merge(&mut self, entity: &Entity) -> Box<dyn MergeTrait>;
 }
 
 pub struct Query {
@@ -31,12 +35,16 @@ impl Query {
 }
 
 impl QueryTrait for Query {
-    fn create(&mut self, entitys: Vec<&Entity>) -> Box<dyn ReturnTrait> {
-        create_method(&mut self.state, entitys)
+    fn create(&mut self, entities: Vec<&Entity>) -> Box<dyn ReturnTrait> {
+        create_method(&mut self.state, entities)
     }
 
     fn r#match(&mut self, entity: &Entity, optional: bool) -> Box<dyn MatchTrait> {
         match_method(&mut self.state, entity, optional)
+    }
+
+    fn merge(&mut self, entity: &Entity) -> Box<dyn MergeTrait> {
+        merge_method(&mut self.state, entity)
     }
 }
 
@@ -90,8 +98,21 @@ pub(super) fn match_method(
     }
 }
 
-pub(super) fn create_method(state: &mut str, entitys: Vec<&Entity>) -> Box<dyn ReturnTrait> {
-    let new_state = entitys
+pub(super) fn merge_method(
+    state: &mut str,
+    entity: &Entity
+    ) -> Box<dyn MergeTrait> {
+    match entity {
+        Entity::Node { nv, node_name, props, labels } => {
+            let new_state = format!("MERGE ({node_var}:{node_name})", node_var=nv, node_name=node_name);
+            todo!()
+        },
+        Entity::Relation { from, to, name, props } => todo!()
+    }
+}
+
+pub(super) fn create_method(state: &mut str, entities: Vec<&Entity>) -> Box<dyn ReturnTrait> {
+    let new_state = entities
         .iter()
         .enumerate()
         .map(|(i, entity)| match entity {
@@ -150,7 +171,7 @@ pub(super) fn create_method(state: &mut str, entitys: Vec<&Entity>) -> Box<dyn R
                         rel_name = name,
                         props_obj = props_to_string(props),
                         to_nv = to.nv(),
-                        is_next = if i == entitys.len() { "," } else { "" }
+                        is_next = if i == entities.len() { "," } else { "" }
                     )
                 } else {
                     format!(
@@ -159,7 +180,7 @@ pub(super) fn create_method(state: &mut str, entitys: Vec<&Entity>) -> Box<dyn R
                         from_nv = from.nv(),
                         rel_name = name,
                         to_nv = to.nv(),
-                        is_next = if i < entitys.len() - 1 { ",\n\t" } else { "" }
+                        is_next = if i < entities.len() - 1 { ",\n\t" } else { "" }
                     )
                 }
             }
