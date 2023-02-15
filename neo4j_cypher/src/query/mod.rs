@@ -107,10 +107,9 @@ pub(super) fn merge_method(
             Entity::Node { nv, node_name, props, .. } => {
                 if let Some(props) = props {
                     format!(
-                        "{indent}MERGE ({node_var}:{node_name} {{ {props_obj} }})",
+                        "{indent}SET {node_var} += {{ {props_obj} }})",
                         indent = if state.len() > 0 {"\n"} else {""},
                         node_var = nv,
-                        node_name = node_name,
                         props_obj = props_to_string(props),
                         )
                 } else {
