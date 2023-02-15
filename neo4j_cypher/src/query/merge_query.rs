@@ -12,6 +12,10 @@ impl MergeQuery {
     }
 }
 
+impl MergeTrait for MergeQuery {
+
+}
+
 impl FinalizeTrait for MergeQuery {
     fn finalize(&self) -> String {
         self.state.clone()
