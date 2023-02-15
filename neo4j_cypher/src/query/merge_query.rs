@@ -36,5 +36,5 @@ impl ReturnTrait for MergeQuery {
     }
 }
 
-pub trait MergeTrait: 'static {
+pub trait MergeTrait: 'static + ReturnTrait + FinalizeTrait {
 }
